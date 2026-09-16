@@ -2149,6 +2149,23 @@ public class CachingConnectionFactoryTests extends AbstractConnectionFactoryTest
 				.isEqualTo(1);
 	}
 
+	@Test
+	void addressResolutionSettingsPropagateToDefaultPublisherFactory() {
+		CachingConnectionFactory ccf = new CachingConnectionFactory("someHost", 1234);
+		AddressResolver resolver = () -> List.of(new Address("resolved", 5672));
+		ccf.setAddressResolver(resolver);
+		ccf.setAddressShuffleMode(AddressShuffleMode.RANDOM);
+
+		AbstractConnectionFactory publisher = (AbstractConnectionFactory) ccf.getPublisherConnectionFactory();
+		assertThat(publisher).isNotNull();
+		assertThat(TestUtils.<AddressResolver>getPropertyValue(publisher, "addressResolver"))
+				.as("address resolver must reach the default publisher sub-factory")
+				.isSameAs(resolver);
+		assertThat(TestUtils.<AddressShuffleMode>getPropertyValue(publisher, "addressShuffleMode"))
+				.as("address shuffle mode must reach the default publisher sub-factory")
+				.isEqualTo(AddressShuffleMode.RANDOM);
+	}
+
 	private static Semaphore firstSemaphoreFromCheckoutPermits(CachingConnectionFactory ccf) {
 		return TestUtils.<Map<?, Semaphore>>getPropertyValue(ccf, "checkoutPermits")
 				.values()
