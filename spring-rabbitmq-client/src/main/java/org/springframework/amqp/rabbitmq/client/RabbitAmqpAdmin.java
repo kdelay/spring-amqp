@@ -364,6 +364,9 @@ public class RabbitAmqpAdmin
 				management.queueDelete(queueName);
 			}
 		}
+		catch (AmqpException.AmqpEntityDoesNotExistException ex) {
+			// Nothing to delete
+		}
 	}
 
 	@Override
